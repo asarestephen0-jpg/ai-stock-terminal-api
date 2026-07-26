@@ -4,212 +4,297 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Stock Terminal</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #111827;
+            --border-color: #1f2937;
+            --text-primary: #f9fafb;
+            --text-secondary: #9ca3af;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-blue: #3b82f6;
+            --accent-yellow: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            padding: 24px;
+            min-height: 100vh;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 24px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            padding: 6px 12px;
+            border-radius: 9999px;
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--accent-green);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--accent-green);
+        }
+
+        .status-dot.syncing {
+            background-color: var(--accent-yellow);
+            animation: pulse 1.5s infinite;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+        }
+
+        button {
+            background-color: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background-color: #2563eb;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .symbol {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .signal-pill {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .signal-buy {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: var(--accent-green);
+        }
+
+        .signal-sell {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: var(--accent-red);
+        }
+
+        .signal-hold {
+            background-color: rgba(245, 158, 11, 0.15);
+            color: var(--accent-yellow);
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            font-size: 0.9rem;
+        }
+
+        .metric-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .metric-label {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        .metric-value {
+            font-weight: 600;
+        }
+
+        .loading-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+    </style>
 </head>
-<body class="bg-black text-emerald-400 min-h-screen p-6 font-mono selection:bg-emerald-500 selection:text-black">
+<body>
 
-    <div class="max-w-6xl mx-auto">
-        <!-- Header -->
-        <header class="flex justify-between items-center mb-8 border-b border-emerald-900/60 pb-5">
-            <div>
-                <div class="flex items-center gap-2">
-                    <span class="inline-block w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></span>
-                    <h1 class="text-3xl font-bold tracking-wider text-emerald-400 uppercase">AI STOCK TERMINAL</h1>
-                </div>
-                <p class="text-emerald-700 text-xs mt-1 tracking-widest">[SYSTEM STATUS: ONLINE] // QUANT SIGNAL ENGINE</p>
-            </div>
-            <button onclick="fetchSignals()" class="bg-emerald-950 hover:bg-emerald-900 text-emerald-400 border border-emerald-500/50 font-bold px-4 py-2 rounded transition-all text-xs uppercase tracking-wider shadow-[0_0_10px_rgba(16,185,129,0.2)]">
-                [REFRESH_FEED]
-            </button>
-        </header>
-
-        <!-- Filter Controls -->
-        <div class="flex gap-3 mb-6 overflow-x-auto pb-2">
-            <button onclick="filterSignals('ALL')" class="filter-btn bg-emerald-500 text-black border border-emerald-400 px-4 py-1 rounded text-xs font-bold uppercase tracking-wider">ALL_STOCKS</button>
-            <button onclick="filterSignals('BUY')" class="filter-btn bg-black text-emerald-500 border border-emerald-900 hover:border-emerald-500 px-4 py-1 rounded text-xs font-bold uppercase tracking-wider">BUY_SIGNALS</button>
-            <button onclick="filterSignals('HOLD')" class="filter-btn bg-black text-emerald-500 border border-emerald-900 hover:border-emerald-500 px-4 py-1 rounded text-xs font-bold uppercase tracking-wider">HOLD_SIGNALS</button>
-            <button onclick="filterSignals('SELL')" class="filter-btn bg-black text-emerald-500 border border-emerald-900 hover:border-emerald-500 px-4 py-1 rounded text-xs font-bold uppercase tracking-wider">SELL_SIGNALS</button>
-        </div>
-
-        <!-- Grid Container for Stock Cards -->
-        <div id="signals-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div class="col-span-full text-center py-12 text-emerald-800 animate-pulse">
-                &gt; INITIALIZING DATA STREAM FROM API...
+    <header>
+        <div class="brand">
+            <h1>AI Stock Terminal</h1>
+            <div id="connectionState" class="status-badge">
+                <span id="statusDot" class="status-dot"></span>
+                <span id="statusText">Connected to Render</span>
             </div>
         </div>
+        <div class="controls">
+            <button onclick="fetchSignals()">Refresh Signals</button>
+        </div>
+    </header>
 
-        <!-- Legal Disclaimer Footer -->
-        <footer class="max-w-6xl mx-auto mt-12 pt-6 border-t border-zinc-900 text-[11px] text-zinc-600 text-center leading-relaxed">
-            <p class="font-bold uppercase tracking-widest text-zinc-500 mb-1">LEGAL & REGULATORY DISCLAIMER</p>
-            <p>
-                This platform is built strictly for research, educational, and informational purposes. Outputs generated by the AI signal model do not constitute direct financial, investment, or trading advice. 
-                Stock trading involves substantial risk of capital loss. Past performance of AI confidence scores is not indicative of future market returns.
-            </p>
-        </footer>
-    </div>
+    <main>
+        <div id="signalsGrid" class="grid">
+            <div class="loading-state">
+                <p>Connecting to live backend at <code>https://ai-stock-terminal-api.onrender.com</code>...</p>
+                <p style="font-size: 0.85rem; margin-top: 8px; color: #6b7280;">(Free tier servers may take up to 45 seconds to wake up on cold boot)</p>
+            </div>
+        </div>
+    </main>
 
-    <!-- JavaScript Logic -->
     <script>
-        const API_URL = 'http://127.0.0.1:8000/api/signals';
-        let allSignalsData = [];
-        let activeChartInstances = {};
+        // Live Render Backend URL
+        const API_URL = 'https://ai-stock-terminal-api.onrender.com/api/signals';
 
         async function fetchSignals() {
-            const grid = document.getElementById('signals-grid');
+            const grid = document.getElementById('signalsGrid');
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+
+            statusDot.classList.add('syncing');
+            statusText.textContent = 'Updating...';
+
             try {
                 const response = await fetch(API_URL);
-                const result = await response.json();
-                allSignalsData = result.data;
-                renderCards(allSignalsData);
+                if (!response.ok) {
+                    throw new Error(`HTTP Error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                renderSignals(data);
+
+                statusDot.classList.remove('syncing');
+                statusText.textContent = 'Connected to Render';
             } catch (error) {
-                console.error("Error connecting to FastAPI backend:", error);
+                console.error('API Fetch Error:', error);
+                statusDot.classList.remove('syncing');
+                statusDot.style.backgroundColor = 'var(--accent-red)';
+                statusText.textContent = 'Connection Failed';
+
                 grid.innerHTML = `
-                    <div class="col-span-full bg-black border border-red-800 text-red-500 p-6 rounded text-center">
-                        <p class="font-bold uppercase tracking-widest">[ERR] BACKEND DISCONNECTED</p>
-                        <p class="text-xs mt-1 text-red-700">TARGET HOST 127.0.0.1:8000 NOT RESPONDING</p>
-                    </div>`;
+                    <div class="loading-state">
+                        <p style="color: var(--accent-red);">Unable to fetch market signals from live API.</p>
+                        <p style="font-size: 0.85rem; margin-top: 8px;">Ensure CORS is enabled on main.py or check browser developer tools (F12).</p>
+                    </div>
+                `;
             }
         }
 
-        function renderCards(signals) {
-            const grid = document.getElementById('signals-grid');
-            
-            // Destroy existing chart instances before re-rendering
-            Object.values(activeChartInstances).forEach(chart => chart.destroy());
-            activeChartInstances = {};
+        function renderSignals(data) {
+            const grid = document.getElementById('signalsGrid');
+            grid.innerHTML = '';
 
-            if (!signals || signals.length === 0) {
-                grid.innerHTML = `<div class="col-span-full text-center py-12 text-emerald-900">&gt; NO MATCHING RECORDS FOUND.</div>`;
+            // Handle array response or object wrapper
+            const signals = Array.isArray(data) ? data : (data.signals || []);
+
+            if (signals.length === 0) {
+                grid.innerHTML = `<div class="loading-state"><p>No market signals currently active.</p></div>`;
                 return;
             }
 
-            grid.innerHTML = signals.map(stock => {
-                let badgeStyle = "bg-amber-950/60 text-amber-400 border-amber-500/40";
-                if (stock.Signal === "BUY") badgeStyle = "bg-emerald-950/80 text-emerald-300 border-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.3)]";
-                if (stock.Signal === "SELL") badgeStyle = "bg-rose-950/60 text-rose-400 border-rose-500/40";
+            signals.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card';
 
-                let barColor = "bg-amber-500";
-                if (stock.Confidence_Score >= 70) barColor = "bg-emerald-400";
-                if (stock.Confidence_Score < 40) barColor = "bg-rose-500";
+                const signalType = (item.signal || item.recommendation || 'HOLD').toLowerCase();
+                let pillClass = 'signal-hold';
+                if (signalType.includes('buy')) pillClass = 'signal-buy';
+                if (signalType.includes('sell')) pillClass = 'signal-sell';
 
-                return `
-                    <div class="bg-zinc-950 border border-emerald-900/80 rounded p-5 flex flex-col justify-between hover:border-emerald-500/80 transition-all shadow-[0_0_15px_rgba(0,0,0,0.8)]">
-                        <div>
-                            <!-- Header -->
-                            <div class="flex justify-between items-start mb-3 border-b border-zinc-900 pb-3">
-                                <div>
-                                    <h2 class="text-2xl font-black text-emerald-400 tracking-wider">${stock.Ticker}</h2>
-                                    <span class="text-[10px] text-emerald-700 uppercase tracking-widest">TS: ${stock.Date}</span>
-                                </div>
-                                <span class="px-2.5 py-0.5 text-xs font-bold rounded border uppercase tracking-widest ${badgeStyle}">
-                                    ${stock.Signal}
-                                </span>
-                            </div>
-
-                            <!-- Chart Canvas Container -->
-                            <div class="mb-4 bg-black p-2 rounded border border-zinc-900 h-28 relative">
-                                <canvas id="chart-${stock.Ticker}"></canvas>
-                            </div>
-
-                            <!-- Metrics Table -->
-                            <div class="grid grid-cols-3 gap-2 bg-black border border-zinc-900 p-2.5 rounded text-center mb-4 text-xs">
-                                <div>
-                                    <p class="text-[10px] text-emerald-800 uppercase">PRICE</p>
-                                    <p class="font-bold text-emerald-300 mt-0.5">$${stock.Close.toFixed(2)}</p>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] text-emerald-800 uppercase">RSI</p>
-                                    <p class="font-bold text-emerald-300 mt-0.5">${stock.RSI ? stock.RSI.toFixed(1) : 'N/A'}</p>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] text-emerald-800 uppercase">SENTIMENT</p>
-                                    <p class="font-bold text-emerald-300 mt-0.5">${stock.Sentiment_Score !== null ? stock.Sentiment_Score : 'N/A'}</p>
-                                </div>
-                            </div>
-
-                            <!-- Confidence Meter -->
-                            <div class="mb-4">
-                                <div class="flex justify-between text-[11px] text-emerald-600 mb-1">
-                                    <span class="uppercase">AI_CONFIDENCE</span>
-                                    <span class="font-bold text-emerald-400">${stock.Confidence_Score}%</span>
-                                </div>
-                                <div class="w-full bg-zinc-900 rounded-full h-1.5 overflow-hidden border border-zinc-800">
-                                    <div class="${barColor} h-1.5 rounded-full" style="width: ${stock.Confidence_Score}%"></div>
-                                </div>
-                            </div>
-
-                            <!-- Analysis Summary -->
-                            <p class="text-xs text-emerald-500/90 bg-black p-2.5 rounded border border-zinc-900 leading-relaxed font-sans">
-                                &gt; ${stock.Analysis_Summary}
-                            </p>
+                card.innerHTML = `
+                    <div class="card-header">
+                        <span class="symbol">${item.symbol || 'N/A'}</span>
+                        <span class="signal-pill ${pillClass}">${item.signal || 'HOLD'}</span>
+                    </div>
+                    <div class="metrics">
+                        <div class="metric-item">
+                            <span class="metric-label">Price</span>
+                            <span class="metric-value">$${item.price ? parseFloat(item.price).toFixed(2) : '---'}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">RSI</span>
+                            <span class="metric-value">${item.rsi ? parseFloat(item.rsi).toFixed(1) : '---'}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Sentiment</span>
+                            <span class="metric-value">${item.sentiment || 'Neutral'}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Confidence</span>
+                            <span class="metric-value">${item.confidence ? (item.confidence * 100).toFixed(0) + '%' : '---'}</span>
                         </div>
                     </div>
                 `;
-            }).join('');
-
-            // Render Chart.js line graphs for each stock card
-            signals.forEach(stock => {
-                const canvas = document.getElementById(`chart-${stock.Ticker}`);
-                if (!canvas) return;
-
-                // Generate a simulated 7-day price history ending at stock.Close if array not present
-                const priceHistory = stock.History || [
-                    stock.Close * 0.96,
-                    stock.Close * 0.98,
-                    stock.Close * 0.97,
-                    stock.Close * 1.01,
-                    stock.Close * 0.99,
-                    stock.Close * 1.02,
-                    stock.Close
-                ];
-
-                const ctx = canvas.getContext('2d');
-                const gradient = ctx.createLinearGradient(0, 0, 0, 100);
-                gradient.addColorStop(0, 'rgba(16, 185, 129, 0.35)');
-                gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
-
-                activeChartInstances[stock.Ticker] = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: ['D-6', 'D-5', 'D-4', 'D-3', 'D-2', 'D-1', 'Today'],
-                        datasets: [{
-                            data: priceHistory,
-                            borderColor: '#10b981',
-                            borderWidth: 2,
-                            backgroundColor: gradient,
-                            fill: true,
-                            tension: 0.3,
-                            pointRadius: 0,
-                            pointHoverRadius: 4,
-                            pointHoverBackgroundColor: '#10b981'
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false }, tooltip: { enabled: true } },
-                        scales: {
-                            x: { display: false },
-                            y: { display: false }
-                        }
-                    }
-                });
+                grid.appendChild(card);
             });
         }
 
-        function filterSignals(signalType) {
-            if (signalType === 'ALL') {
-                renderCards(allSignalsData);
-            } else {
-                const filtered = allSignalsData.filter(s => s.Signal === signalType);
-                renderCards(filtered);
-            }
-        }
-
-        fetchSignals();
+        // Fetch on load
+        document.addEventListener('DOMContentLoaded', fetchSignals);
     </script>
 </body>
 </html>
