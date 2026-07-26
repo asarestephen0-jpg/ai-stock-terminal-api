@@ -17,178 +17,56 @@
             --accent-blue: #3b82f6;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg-dark); color: var(--text-primary); padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 340px; gap: 20px; }
+
+        @media (max-width: 900px) {
+            .container { grid-template-columns: 1fr; }
         }
 
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-primary);
-            padding: 20px;
-        }
+        header { grid-column: 1 / -1; margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; }
+        h1 { font-size: 1.5rem; margin-bottom: 15px; }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+        .market-tabs { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; }
+        .tab { background-color: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-secondary); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.875rem; font-weight: 500; }
+        .tab:hover { color: var(--text-primary); border-color: var(--accent-blue); }
+        .tab.active { background-color: var(--accent-blue); color: #ffffff; border-color: var(--accent-blue); }
 
-        /* Top Header & Navigation Tabs */
-        header {
-            margin-bottom: 20px;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 15px;
-        }
+        .chart-container { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; margin-bottom: 25px; height: 320px; }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .chart-wrapper { position: relative; height: 230px; width: 100%; }
 
-        h1 {
-            font-size: 1.5rem;
-            margin-bottom: 15px;
-            letter-spacing: 0.5px;
-        }
+        .section-title { font-size: 1.2rem; margin-bottom: 15px; }
+        .signals-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
+        .card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .symbol { font-weight: 700; font-size: 1.1rem; }
+        .signal-pill { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; }
+        .signal-buy { background-color: rgba(34, 197, 94, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
+        .signal-sell { background-color: rgba(239, 68, 68, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); }
+        .signal-hold { background-color: rgba(148, 163, 184, 0.2); color: var(--text-secondary); border: 1px solid var(--text-secondary); }
 
-        .market-tabs {
-            display: flex;
-            gap: 10px;
-            overflow-x: auto;
-            padding-bottom: 5px;
-        }
+        .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.85rem; }
+        .metric-label { color: var(--text-secondary); font-size: 0.75rem; }
+        .metric-value { font-weight: 600; margin-top: 2px; }
 
-        .tab {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.875rem;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-
-        .tab:hover {
-            color: var(--text-primary);
-            border-color: var(--accent-blue);
-        }
-
-        .tab.active {
-            background-color: var(--accent-blue);
-            color: #ffffff;
-            border-color: var(--accent-blue);
-        }
-
-        /* Main Chart Section */
-        .chart-container {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 25px;
-            height: 350px;
-        }
-
-        .chart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .chart-header h2 {
-            font-size: 1.1rem;
-            color: var(--text-secondary);
-        }
-
-        .chart-header span {
-            color: var(--accent-green);
-            font-weight: 600;
-        }
-
-        .chart-wrapper {
-            position: relative;
-            height: 260px;
-            width: 100%;
-        }
-
-        /* Signals Grid Section */
-        .section-title {
-            font-size: 1.2rem;
-            margin-bottom: 15px;
-        }
-
-        .signals-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 15px;
-        }
-
-        .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 15px;
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .symbol {
-            font-weight: 700;
-            font-size: 1.1rem;
-        }
-
-        .signal-pill {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 700;
-        }
-
-        .signal-buy {
-            background-color: rgba(34, 197, 94, 0.2);
-            color: var(--accent-green);
-            border: 1px solid var(--accent-green);
-        }
-
-        .signal-sell {
-            background-color: rgba(239, 68, 68, 0.2);
-            color: var(--accent-red);
-            border: 1px solid var(--accent-red);
-        }
-
-        .signal-hold {
-            background-color: rgba(148, 163, 184, 0.2);
-            color: var(--text-secondary);
-            border: 1px solid var(--text-secondary);
-        }
-
-        .metrics {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            font-size: 0.85rem;
-        }
-
-        .metric-label {
-            color: var(--text-secondary);
-            font-size: 0.75rem;
-        }
-
-        .metric-value {
-            font-weight: 600;
-            margin-top: 2px;
-        }
+        /* AI Chat Panel */
+        .ai-chat-panel { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; display: flex; flex-direction: column; height: 600px; }
+        .chat-header { padding: 15px; border-bottom: 1px solid var(--border-color); font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .chat-messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; font-size: 0.9rem; }
+        .msg { padding: 10px 12px; border-radius: 6px; line-height: 1.4; }
+        .user-msg { background-color: var(--accent-blue); align-self: flex-end; max-width: 85%; }
+        .ai-msg { background-color: #0f172a; border: 1px solid var(--border-color); align-self: flex-start; max-width: 95%; white-space: pre-line; }
+        
+        .chat-input-area { padding: 12px; border-top: 1px solid var(--border-color); display: flex; gap: 8px; }
+        .chat-input-area input { flex: 1; background-color: #0f172a; border: 1px solid var(--border-color); color: var(--text-primary); padding: 8px 12px; border-radius: 6px; outline: none; }
+        .chat-input-area button { background-color: var(--accent-green); color: #000; font-weight: 700; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- Header Nav -->
         <header>
             <h1>AI Stock Terminal</h1>
             <div class="market-tabs">
@@ -202,28 +80,42 @@
             </div>
         </header>
 
-        <!-- Chart Section -->
-        <div class="chart-container">
-            <div class="chart-header">
-                <h2>Market Trend Analysis</h2>
-                <span id="chartLabel">DOW Intraday</span>
+        <!-- Left Column: Chart and Signals -->
+        <main>
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2>Market Trend Analysis</h2>
+                    <span id="chartLabel" style="color: var(--accent-green); font-weight:600;">DOW Intraday</span>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="trendChart"></canvas>
+                </div>
             </div>
-            <div class="chart-wrapper">
-                <canvas id="trendChart"></canvas>
-            </div>
-        </div>
 
-        <!-- Signals Section -->
-        <h2 class="section-title">Live AI Signals</h2>
-        <div class="signals-grid" id="signalsGrid">
-            <!-- Dynamic signal cards will load here -->
-        </div>
+            <h2 class="section-title">Live AI Market Signals</h2>
+            <div class="signals-grid" id="signalsGrid">
+                <!-- Cards render dynamically -->
+            </div>
+        </main>
+
+        <!-- Right Column: AI Advisory Chat Panel -->
+        <aside class="ai-chat-panel">
+            <div class="chat-header">
+                🤖 AI Stock Advisory
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="msg ai-msg">Welcome! Ask me for advice on any ticker (e.g., <i>"Should I buy NVDA right now?"</i> or <i>"Analyze TSLA technicals"</i>).</div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chatInput" placeholder="Ask AI Advisor..." onkeydown="if(event.key==='Enter') sendChatMessage()">
+                <button onclick="sendChatMessage()">Send</button>
+            </div>
+        </aside>
     </div>
 
     <script>
-        const API_URL = 'https://ai-stock-terminal-api.onrender.com/api/signals';
+        const API_URL = 'https://ai-stock-terminal-api.onrender.com';
 
-        // Sample datasets for each top menu category
         const categoryData = {
             'Markets': { label: 'DOW Intraday', labels: ['10 AM', '11 AM', '12 PM', '1 PM', '2 PM', '3 PM', '4 PM'], data: [51760, 51850, 51680, 52080, 51950, 51880, 51947] },
             'US': { label: 'S&P 500 Intraday', labels: ['10 AM', '11 AM', '12 PM', '1 PM', '2 PM', '3 PM', '4 PM'], data: [7390, 7402, 7398, 7415, 7410, 7408, 7411] },
@@ -234,12 +126,7 @@
             'Cryptos': { label: 'Bitcoin ($)', labels: ['10 AM', '11 AM', '12 PM', '1 PM', '2 PM', '3 PM', '4 PM'], data: [64200, 64800, 64500, 65300, 66100, 65800, 66400] }
         };
 
-        // Initialize Chart.js
         const ctx = document.getElementById('trendChart').getContext('2d');
-        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-        gradient.addColorStop(0, 'rgba(34, 197, 94, 0.35)');
-        gradient.addColorStop(1, 'rgba(34, 197, 94, 0.0)');
-
         const trendChart = new Chart(ctx, {
             type: 'line',
             data: {
@@ -249,10 +136,8 @@
                     data: categoryData['Markets'].data,
                     borderColor: '#22c55e',
                     borderWidth: 2,
-                    fill: true,
-                    backgroundColor: gradient,
-                    tension: 0.3,
-                    pointRadius: 0
+                    fill: false,
+                    tension: 0.3
                 }]
             },
             options: {
@@ -261,31 +146,27 @@
                 plugins: { legend: { display: false } },
                 scales: {
                     x: { grid: { display: false }, ticks: { color: '#9ca3af' } },
-                    y: { grid: { color: '#232f42' }, ticks: { color: '#9ca3af' } }
+                    y: { grid: { color: '#334155' }, ticks: { color: '#9ca3af' } }
                 }
             }
         });
 
-        // Function to update chart data when a menu tab is selected
         function updateChartCategory(categoryName) {
             const cat = categoryData[categoryName] || categoryData['Markets'];
             trendChart.data.labels = cat.labels;
             trendChart.data.datasets[0].label = cat.label;
             trendChart.data.datasets[0].data = cat.data;
             trendChart.update();
-            
             document.getElementById('chartLabel').innerText = cat.label;
         }
 
-        // Fetch Live Signals from API based on active category
         async function fetchSignals(category = 'Markets') {
             const grid = document.getElementById('signalsGrid');
             try {
-                const response = await fetch(`${API_URL}?category=${category.toLowerCase()}`);
+                const response = await fetch(`${API_URL}/api/signals?category=${category.toLowerCase()}`);
                 const data = await response.json();
-                
                 grid.innerHTML = '';
-                const signals = Array.isArray(data) ? data : (data.signals || []);
+                const signals = data.signals || [];
 
                 signals.forEach(item => {
                     const card = document.createElement('div');
@@ -297,7 +178,7 @@
 
                     card.innerHTML = `
                         <div class="card-header">
-                            <span class="symbol">${item.symbol || 'N/A'}</span>
+                            <span class="symbol">${item.symbol}</span>
                             <span class="signal-pill ${pillClass}">${signal}</span>
                         </div>
                         <div class="metrics">
@@ -314,19 +195,47 @@
             }
         }
 
-        // Add event listeners to top menu tabs
+        async function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const messages = document.getElementById('chatMessages');
+            const prompt = input.value.trim();
+
+            if (!prompt) return;
+
+            // Render User Prompt
+            messages.innerHTML += `<div class="msg user-msg">${prompt}</div>`;
+            input.value = '';
+            messages.scrollTop = messages.scrollHeight;
+
+            // Loading state
+            const loadingId = "loading-" + Date.now();
+            messages.innerHTML += `<div class="msg ai-msg" id="${loadingId}">Analyzing market data...</div>`;
+            messages.scrollTop = messages.scrollHeight;
+
+            try {
+                const res = await fetch(`${API_URL}/api/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: prompt })
+                });
+
+                const data = await res.json();
+                document.getElementById(loadingId).innerText = data.response;
+            } catch (err) {
+                document.getElementById(loadingId).innerText = "Failed to connect to AI Advisor backend.";
+            }
+            messages.scrollTop = messages.scrollHeight;
+        }
+
         document.querySelectorAll('.market-tabs .tab').forEach(tab => {
             tab.addEventListener('click', (e) => {
                 document.querySelectorAll('.market-tabs .tab').forEach(t => t.classList.remove('active'));
                 e.target.classList.add('active');
-                
-                const category = e.target.innerText;
-                updateChartCategory(category);
-                fetchSignals(category);
+                updateChartCategory(e.target.innerText);
+                fetchSignals(e.target.innerText);
             });
         });
 
-        // Load default signals on page startup
         document.addEventListener('DOMContentLoaded', () => fetchSignals('Markets'));
     </script>
 </body>
