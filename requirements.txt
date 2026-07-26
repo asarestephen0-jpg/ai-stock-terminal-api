@@ -1,5 +1,6 @@
 fastapi
 uvicorn
 yfinance
-google-genai
 numpy
+google-genai
+textblob
