@@ -4,193 +4,130 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Stock Terminal</title>
-    <!-- Chart.js CDN for Stock Trend Graphs -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --bg-color: #0d131d;
-            --card-bg: #151d2a;
-            --card-active-bg: #1c2738;
-            --border-color: #232f42;
-            --text-primary: #f3f4f6;
-            --text-secondary: #9ca3af;
+            --bg-dark: #0f172a;
+            --card-bg: #1e293b;
+            --border-color: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
             --accent-green: #22c55e;
             --accent-red: #ef4444;
             --accent-blue: #3b82f6;
-            --accent-yellow: #f59e0b;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
 
         body {
-            background-color: var(--bg-color);
+            background-color: var(--bg-dark);
             color: var(--text-primary);
-            padding: 24px;
-            min-height: 100vh;
+            padding: 20px;
         }
 
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Top Header & Navigation Tabs */
         header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
         }
 
-        .brand h1 {
+        h1 {
             font-size: 1.5rem;
-            font-weight: 700;
+            margin-bottom: 15px;
+            letter-spacing: 0.5px;
         }
 
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.85rem;
-            padding: 6px 12px;
-            border-radius: 9999px;
-            background-color: rgba(34, 197, 94, 0.1);
-            color: var(--accent-green);
-            border: 1px solid rgba(34, 197, 94, 0.2);
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: var(--accent-green);
-        }
-
-        /* Nav Tabs */
         .market-tabs {
             display: flex;
-            gap: 20px;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 12px;
-            margin-bottom: 20px;
+            gap: 10px;
             overflow-x: auto;
+            padding-bottom: 5px;
         }
 
         .tab {
-            color: var(--text-secondary);
-            font-weight: 600;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-
-        .tab.active, .tab:hover {
-            color: var(--text-primary);
-        }
-
-        /* Summary Index Strip */
-        .index-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-
-        .index-card {
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 14px;
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 6px;
             cursor: pointer;
-            transition: border-color 0.2s;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
         }
 
-        .index-card.active {
-            background-color: var(--card-active-bg);
+        .tab:hover {
+            color: var(--text-primary);
             border-color: var(--accent-blue);
         }
 
-        .index-title {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            font-weight: 600;
-            margin-bottom: 6px;
+        .tab.active {
+            background-color: var(--accent-blue);
+            color: #ffffff;
+            border-color: var(--accent-blue);
         }
 
-        .index-value {
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-
-        .index-change {
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        .positive { color: var(--accent-green); }
-        .negative { color: var(--accent-red); }
-
-        /* Chart Section */
+        /* Main Chart Section */
         .chart-container {
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
+            border-radius: 8px;
             padding: 20px;
-            margin-bottom: 32px;
+            margin-bottom: 25px;
+            height: 350px;
         }
 
         .chart-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 16px;
+            margin-bottom: 15px;
         }
 
-        .time-filters {
-            display: flex;
-            gap: 8px;
-        }
-
-        .time-btn {
-            background: transparent;
-            border: none;
+        .chart-header h2 {
+            font-size: 1.1rem;
             color: var(--text-secondary);
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 0.85rem;
+        }
+
+        .chart-header span {
+            color: var(--accent-green);
             font-weight: 600;
-            cursor: pointer;
         }
 
-        .time-btn.active {
-            background-color: var(--card-active-bg);
-            color: var(--text-primary);
-        }
-
-        .canvas-wrapper {
+        .chart-wrapper {
             position: relative;
-            height: 320px;
+            height: 260px;
             width: 100%;
         }
 
-        /* Signals Cards Grid */
+        /* Signals Grid Section */
         .section-title {
-            font-size: 1.1rem;
-            margin-bottom: 16px;
-            font-weight: 600;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
         }
 
-        .grid {
+        .signals-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 16px;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 15px;
         }
 
         .card {
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            padding: 16px;
+            padding: 15px;
         }
 
         .card-header {
@@ -201,8 +138,8 @@
         }
 
         .symbol {
-            font-size: 1.1rem;
             font-weight: 700;
+            font-size: 1.1rem;
         }
 
         .signal-pill {
@@ -212,9 +149,23 @@
             font-weight: 700;
         }
 
-        .signal-buy { background: rgba(34, 197, 94, 0.15); color: var(--accent-green); }
-        .signal-sell { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); }
-        .signal-hold { background: rgba(245, 158, 11, 0.15); color: var(--accent-yellow); }
+        .signal-buy {
+            background-color: rgba(34, 197, 94, 0.2);
+            color: var(--accent-green);
+            border: 1px solid var(--accent-green);
+        }
+
+        .signal-sell {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: var(--accent-red);
+            border: 1px solid var(--accent-red);
+        }
+
+        .signal-hold {
+            background-color: rgba(148, 163, 184, 0.2);
+            color: var(--text-secondary);
+            border: 1px solid var(--text-secondary);
+        }
 
         .metrics {
             display: grid;
@@ -223,87 +174,68 @@
             font-size: 0.85rem;
         }
 
-        .metric-label { color: var(--text-secondary); font-size: 0.75rem; }
-        .metric-value { font-weight: 600; }
+        .metric-label {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+        }
+
+        .metric-value {
+            font-weight: 600;
+            margin-top: 2px;
+        }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="brand">
+    <div class="container">
+        <!-- Header Nav -->
+        <header>
             <h1>AI Stock Terminal</h1>
-        </div>
-        <div class="status-badge">
-            <span class="status-dot"></span>
-            <span>Live Feed Connected</span>
-        </div>
-    </header>
+            <div class="market-tabs">
+                <button class="tab active">Markets</button>
+                <button class="tab">US</button>
+                <button class="tab">Futures</button>
+                <button class="tab">Global</button>
+                <button class="tab">Commodities</button>
+                <button class="tab">Currencies</button>
+                <button class="tab">Cryptos</button>
+            </div>
+        </header>
 
-    <!-- Market Categories -->
-    <div class="market-tabs">
-        <span class="tab active">Markets</span>
-        <span class="tab">US</span>
-        <span class="tab">Futures</span>
-        <span class="tab">Global</span>
-        <span class="tab">Commodities</span>
-        <span class="tab">Currencies</span>
-        <span class="tab">Cryptos</span>
-    </div>
-
-    <!-- Index Cards Strip -->
-    <div class="index-grid">
-        <div class="index-card active">
-            <div class="index-title">DOW ↗</div>
-            <div class="index-value">51,947.25</div>
-            <div class="index-change positive">+235.60 (+0.46%)</div>
-        </div>
-        <div class="index-card">
-            <div class="index-title">S&P 500 ↗</div>
-            <div class="index-value">7,411.98</div>
-            <div class="index-change positive">+3.68 (+0.05%)</div>
-        </div>
-        <div class="index-card">
-            <div class="index-title">NASDAQ ↗</div>
-            <div class="index-value">24,975.82</div>
-            <div class="index-change negative">-161.87 (-0.64%)</div>
-        </div>
-        <div class="index-card">
-            <div class="index-title">Russell 2000 ↗</div>
-            <div class="index-value">2,930.00</div>
-            <div class="index-change negative">-10.16 (-0.35%)</div>
-        </div>
-    </div>
-
-    <!-- Trend Graph Canvas -->
-    <div class="chart-container">
-        <div class="chart-header">
-            <span style="font-weight: 600; color: var(--text-secondary)">DOW Intraday Movement</span>
-            <div class="time-filters">
-                <button class="time-btn active">1D</button>
-                <button class="time-btn">5D</button>
-                <button class="time-btn">1M</button>
-                <button class="time-btn">1Y</button>
-                <button class="time-btn">Max</button>
+        <!-- Chart Section -->
+        <div class="chart-container">
+            <div class="chart-header">
+                <h2>Market Trend Analysis</h2>
+                <span id="chartLabel">DOW Intraday</span>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="trendChart"></canvas>
             </div>
         </div>
-        <div class="canvas-wrapper">
-            <canvas id="trendChart"></canvas>
-        </div>
-    </div>
 
-    <!-- API AI Signals List -->
-    <div class="section-title">Live Algorithmic Signals</div>
-    <div id="signalsGrid" class="grid">
-        <!-- Dynamically injected via API -->
+        <!-- Signals Section -->
+        <h2 class="section-title">Live AI Signals</h2>
+        <div class="signals-grid" id="signalsGrid">
+            <!-- Dynamic signal cards will load here -->
+        </div>
     </div>
 
     <script>
         const API_URL = 'https://ai-stock-terminal-api.onrender.com/api/signals';
 
-        // 1. Initialize Trend Chart
+        // Sample datasets for each top menu category
+        const categoryData = {
+            'Markets': { label: 'DOW Intraday', labels: ['10 AM', '11 AM', '12 PM', '1 PM', '2 PM', '3 PM', '4 PM'], data: [51760, 51850, 51680, 52080, 51950, 51880, 51947] },
+            'US': { label: 'S&P 500 Intraday', labels: ['10 AM', '11 AM', '12 PM', '1 PM', '2 PM', '3 PM', '4 PM'], data: [7390, 7402, 7398, 7415, 7410, 7408, 7411] },
+            'Futures': { label: 'NASDAQ Futures', labels: ['10 AM', '11 AM', '12 PM', '1 PM', '2 PM', '3 PM', '4 PM'], data: [25100, 25050, 24900, 24950, 24920, 24960, 24975] },
+            'Global': { label: 'FTSE 100', labels: ['10 AM', '11 AM', '12 PM', '1 PM', '2 PM', '3 PM', '4 PM'], data: [8200, 8220, 8215, 8240, 8230, 8250, 8260] },
+            'Commodities': { label: 'WTI Oil ($)', labels: ['10 AM', '11 AM', '12 PM', '1 PM', '2 PM', '3 PM', '4 PM'], data: [89.3, 88.5, 87.1, 86.4, 85.8, 85.2, 85.0] },
+            'Currencies': { label: 'EUR/USD', labels: ['10 AM', '11 AM', '12 PM', '1 PM', '2 PM', '3 PM', '4 PM'], data: [1.082, 1.084, 1.083, 1.085, 1.087, 1.086, 1.088] },
+            'Cryptos': { label: 'Bitcoin ($)', labels: ['10 AM', '11 AM', '12 PM', '1 PM', '2 PM', '3 PM', '4 PM'], data: [64200, 64800, 64500, 65300, 66100, 65800, 66400] }
+        };
+
+        // Initialize Chart.js
         const ctx = document.getElementById('trendChart').getContext('2d');
-        
-        // Green Gradient Fill
         const gradient = ctx.createLinearGradient(0, 0, 0, 300);
         gradient.addColorStop(0, 'rgba(34, 197, 94, 0.35)');
         gradient.addColorStop(1, 'rgba(34, 197, 94, 0.0)');
@@ -311,17 +243,16 @@
         const trendChart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: ['10:00 AM', '11:00 AM', '12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM'],
+                labels: categoryData['Markets'].labels,
                 datasets: [{
-                    label: 'DOW',
-                    data: [51760, 51850, 51680, 52080, 51950, 51880, 51947],
+                    label: categoryData['Markets'].label,
+                    data: categoryData['Markets'].data,
                     borderColor: '#22c55e',
                     borderWidth: 2,
                     fill: true,
                     backgroundColor: gradient,
                     tension: 0.3,
-                    pointRadius: 0,
-                    pointHoverRadius: 6
+                    pointRadius: 0
                 }]
             },
             options: {
@@ -335,11 +266,22 @@
             }
         });
 
-        // 2. Fetch Live Signals from Render FastAPI
-        async function fetchSignals() {
+        // Function to update chart data when a menu tab is selected
+        function updateChartCategory(categoryName) {
+            const cat = categoryData[categoryName] || categoryData['Markets'];
+            trendChart.data.labels = cat.labels;
+            trendChart.data.datasets[0].label = cat.label;
+            trendChart.data.datasets[0].data = cat.data;
+            trendChart.update();
+            
+            document.getElementById('chartLabel').innerText = cat.label;
+        }
+
+        // Fetch Live Signals from API based on active category
+        async function fetchSignals(category = 'Markets') {
             const grid = document.getElementById('signalsGrid');
             try {
-                const response = await fetch(API_URL);
+                const response = await fetch(`${API_URL}?category=${category.toLowerCase()}`);
                 const data = await response.json();
                 
                 grid.innerHTML = '';
@@ -372,7 +314,20 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', fetchSignals);
+        // Add event listeners to top menu tabs
+        document.querySelectorAll('.market-tabs .tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                document.querySelectorAll('.market-tabs .tab').forEach(t => t.classList.remove('active'));
+                e.target.classList.add('active');
+                
+                const category = e.target.innerText;
+                updateChartCategory(category);
+                fetchSignals(category);
+            });
+        });
+
+        // Load default signals on page startup
+        document.addEventListener('DOMContentLoaded', () => fetchSignals('Markets'));
     </script>
 </body>
 </html>
