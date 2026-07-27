@@ -2,13 +2,14 @@ import os
 import re
 import numpy as np
 import yfinance as yf
+from textblob import TextBlob
 from fastapi import FastAPI, Query, Body
 from fastapi.middleware.cors import CORSMiddleware
 from google import genai
 
-app = FastAPI(title="AI Stock Terminal API")
+app = FastAPI(title="Stock X AI Terminal API")
 
-# Enable CORS for local index.html and production
+# Enable CORS for local testing and web frontends
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -17,10 +18,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize Gemini Client (Reads GEMINI_API_KEY from environment)
+# Initialize Gemini Client using GEMINI_API_KEY environment variable
 GEMINI_KEY = os.environ.get("GEMINI_API_KEY")
 ai_client = genai.Client(api_key=GEMINI_KEY) if GEMINI_KEY else None
 
+# Dynamic model priority list (tries top generation models first, falls back gracefully)
+GEMINI_MODELS = [
+    'gemini-2.0-flash',
+    'gemini-1.5-flash',
+    'gemini-1.5-pro'
+]
+
+# Ticker categories for market tabs
 CATEGORY_TICKERS = {
     "markets": ["^DJI", "^GSPC", "^IXIC"],
     "us": ["AAPL", "NVDA", "TSLA", "MSFT", "AMZN"],
@@ -31,19 +40,20 @@ CATEGORY_TICKERS = {
     "cryptos": ["BTC-USD", "ETH-USD", "SOL-USD"]
 }
 
+
 def calculate_rsi(prices, window=14):
-    """Calculates 14-day RSI safely using NumPy."""
+    """Calculate Relative Strength Index (RSI)"""
     if len(prices) < window + 1:
         return 50.0
     
     deltas = np.diff(prices)
     seed = deltas[:window+1]
-    up = seed[seed >= 0].sum() / window
-    down = -seed[seed < 0].sum() / window
+    up = seed[seed >= 0].sum()/window
+    down = -seed[seed < 0].sum()/window
+    rs = up/down if down != 0 else 0
     
-    rs = up / down if down != 0 else 0
     rsi = np.zeros_like(prices)
-    rsi[:window] = 100. - 100. / (1. + rs)
+    rsi[:window] = 100. - 100./(1. + rs)
 
     for i in range(window, len(prices)):
         delta = deltas[i - 1]
@@ -52,45 +62,39 @@ def calculate_rsi(prices, window=14):
 
         up = (up * (window - 1) + upval) / window
         down = (down * (window - 1) + downval) / window
-        rs = up / down if down != 0 else 0
-        rsi[i] = 100. - 100. / (1. + rs)
+        rs = up/down if down != 0 else 0
+        rsi[i] = 100. - 100./(1. + rs)
 
     return round(float(rsi[-1]), 2)
 
+
 def analyze_sentiment(symbol):
-    """Lightweight headline keyword analyzer (No NLTK or TextBlob needed)."""
+    """Analyze news sentiment using TextBlob"""
     try:
         ticker = yf.Ticker(symbol)
         news = ticker.news
         if not news:
             return "NEUTRAL"
         
-        bullish_words = {"growth", "gain", "profit", "surge", "buy", "up", "bull", "high", "record", "beat"}
-        bearish_words = {"drop", "fall", "loss", "decline", "sell", "down", "bear", "low", "risk", "miss"}
-        
-        score = 0
-        for item in news[:5]:
-            title = item.get("title", "").lower()
-            for word in title.split():
-                if word in bullish_words:
-                    score += 1
-                elif word in bearish_words:
-                    score -= 1
-
-        if score > 0:
+        scores = [TextBlob(item.get("title", "")).sentiment.polarity for item in news[:5]]
+        avg_score = np.mean(scores) if scores else 0
+        if avg_score > 0.05:
             return "BULLISH"
-        elif score < 0:
+        elif avg_score < -0.05:
             return "BEARISH"
         return "NEUTRAL"
     except Exception:
         return "NEUTRAL"
 
+
 @app.get("/")
-def read_root():
-    return {"status": "online", "service": "AI Stock Terminal API"}
+def root():
+    return {"status": "online", "service": "Stock X AI Terminal API"}
+
 
 @app.get("/api/signals")
 def get_signals(category: str = Query("markets")):
+    """Generates AI Market Signals per category"""
     category_key = category.lower()
     tickers = CATEGORY_TICKERS.get(category_key, CATEGORY_TICKERS["markets"])
     results = []
@@ -123,9 +127,8 @@ def get_signals(category: str = Query("markets")):
                 signal = "SELL"
                 confidence = 0.68
 
-            clean_symbol = symbol.replace("=X", "").replace("=F", "").replace("^", "")
             results.append({
-                "symbol": clean_symbol,
+                "symbol": symbol.replace("=X", "").replace("=F", "").replace("^", ""),
                 "price": current_price,
                 "rsi": rsi,
                 "sentiment": sentiment,
@@ -137,16 +140,21 @@ def get_signals(category: str = Query("markets")):
 
     return {"category": category, "signals": results}
 
+
 @app.post("/api/chat")
 def ai_stock_advisor(payload: dict = Body(...)):
+    """Conversational Stock Advisor with Automatic Model Fallback"""
     user_prompt = payload.get("prompt", "")
     
-    # Extract ticker symbol candidate
+    # Extract ticker symbol from user message
     extracted_symbols = re.findall(r'\b[A-Za-z]{1,5}\b', user_prompt.upper())
-    ignore_words = {"WHAT", "HOW", "IS", "BUY", "SELL", "STOCK", "GOOD", "THE", "CAN", "FOR", "SHOULD", "I"}
+    symbol = "AAPL"
+    ignore_words = {"WHAT", "HOW", "IS", "BUY", "SELL", "STOCK", "GOOD", "THE", "CAN", "FOR", "SHOULD", "NOW", "RIGHT", "THIS", "ME"}
     filtered_symbols = [s for s in extracted_symbols if s not in ignore_words]
-    symbol = filtered_symbols[0] if filtered_symbols else "AAPL"
+    if filtered_symbols:
+        symbol = filtered_symbols[0]
 
+    # Fetch real-time market context
     current_price = "N/A"
     rsi = "N/A"
     sentiment = "NEUTRAL"
@@ -160,35 +168,44 @@ def ai_stock_advisor(payload: dict = Body(...)):
             rsi = calculate_rsi(prices)
             sentiment = analyze_sentiment(symbol)
     except Exception as e:
-        print(f"Fetch error for {symbol}: {e}")
+        print(f"yfinance fetch error for {symbol}: {e}")
 
+    # Fallback if API Key is missing on Render
     if not ai_client:
         return {
             "symbol": symbol,
-            "response": f"**[Market Data Context]**\nSymbol: {symbol} | Price: {current_price} | RSI: {rsi} | Sentiment: {sentiment}\n\n*Set the `GEMINI_API_KEY` environment variable in your Render dashboard to enable conversational AI output.*"
+            "response": f"**[Market Data]** Symbol: `{symbol}` | Price: `{current_price}` | RSI: `{rsi}` | Sentiment: `{sentiment}`.\n\n*Note: Set your GEMINI_API_KEY environment variable on Render to activate conversational AI.*"
         }
 
-    prompt = f"""
-    You are an expert AI Stock Analyst.
-    User Question: "{user_prompt}"
-
-    Live Market Metrics for {symbol}:
+    # Context-informed system instructions for Gemini
+    system_instruction = f"""
+    You are Stock X's expert AI Stock Market Analyst.
+    The user is asking: "{user_prompt}"
+    
+    Here is the live market context for {symbol}:
     - Current Price: {current_price}
-    - 14-Day RSI: {rsi}
+    - 14-day RSI: {rsi}
     - News Sentiment: {sentiment}
 
-    Provide a concise, formatted Markdown analysis containing:
+    Provide a concise, professional financial breakdown formatted in Markdown:
     1. Technical Summary
-    2. Risk Factor
-    3. Final Recommendation (Buy, Hold, or Sell)
-    End with a brief 1-sentence legal disclaimer.
+    2. Sentiment & Risk Factor
+    3. Actionable Verdict (Buy, Hold, or Sell)
+    Always end with a 1-sentence standard educational legal disclaimer.
     """
 
-    try:
-        response = ai_client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=prompt,
-        )
-        return {"symbol": symbol, "response": response.text}
-    except Exception as err:
-        return {"symbol": symbol, "response": f"AI Engine error: {str(err)}"}
+    # Iterate through fallback models list to guarantee a valid response
+    last_error = None
+    for model_name in GEMINI_MODELS:
+        try:
+            response = ai_client.models.generate_content(
+                model=model_name,
+                contents=system_instruction,
+            )
+            return {"symbol": symbol, "response": response.text}
+        except Exception as err:
+            last_error = err
+            print(f"Model {model_name} failed, trying next... Error: {err}")
+            continue
+
+    return {"symbol": symbol, "response": f"AI Engine error across all models: {str(last_error)}"}
